@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include "phonebook.hpp"
 
 
@@ -32,51 +33,58 @@ void Phonebook::ADD() {
 }
 
 void Phonebook::SEARCH() {
-
-    if(Phonebook::contacts.empty()){
-        std::cout<<"Phonebook is Empty\n";
+    if (Phonebook::contacts.empty()) {
+        std::cout << "Phonebook is Empty\n";
         return;
     }
-    else{
+    else {
+        std::cout << "INDEX" << '\t' << "NAME" << '\n';
 
-    std::cout << "INDEX" << '\t'  << "NAME" << '\n';
-
-    for (int i=0;i<contacts.size();i++){
-        std::cout << (i+1) << '\t'  <<contacts[i].Name << '\n';
-    }
-
-    int index;
-    std::cout<<"Choose index of contract: ";
-    std::cin>>index;
-    index--;
-
-    if(index<0 || index>=contacts.size()){
-        std::cout<<"Invaild index\n";
-        return;
-    }
-    else{
-
-      std::cout << "Name: " << Phonebook::contacts[index].Name << " , "
-                << "PhoneNumber: " << Phonebook::contacts[index].PhoneNumber << " , "
-                << "NickName: " << Phonebook::contacts[index].NickName << '\n';
+        for (int i = 0; i < contacts.size(); i++) {
+            std::cout << (i + 1) << '\t' << contacts[i].Name << '\n';
         }
-    while (1){
-        std::string Y_N;
-        std::cout<<"Do you want to bookmark this contract? (Y/N): ";
-        std::cin>>Y_N;
 
-        if (Y_N=="Y" || Y_N == "y"){
-            contacts[index].bookmarked = true;
-            std::cout<<contacts[index].Name<<"'s contract is Added on Bookmark\n";
-            break;
+        int index;
+        std::cout << "Choose index of contract: ";
+        std::cin >> index;
+
+        if (std::cin.fail()) {
+            std::cout << "Invalid input! Please enter a valid index number.\n";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return;
         }
-        else if (Y_N=="N" || Y_N == "n"){
-            std::cout<<"Not Added\n";
-            break;
+
+        index--;
+
+        if (index < 0 || index >= contacts.size()) {
+            std::cout << "Invalid index\n";
+            return;
+        }
+        else {
+            std::cout << "Name: " << Phonebook::contacts[index].Name << " , "
+                      << "PhoneNumber: " << Phonebook::contacts[index].PhoneNumber << " , "
+                      << "NickName: " << Phonebook::contacts[index].NickName << '\n';
+        }
+
+        while (true) {
+            std::string Y_N;
+            std::cout << "Do you want to bookmark this contract? (Y/N): ";
+            std::cin >> Y_N;
+
+            if (Y_N == "Y" || Y_N == "y") {
+                contacts[index].SetBookmarked(true);
+                std::cout << contacts[index].Name << "'s contract is added to bookmarks\n";
+                break;
+            }
+            else if (Y_N == "N" || Y_N == "n") {
+                std::cout << "Not added\n";
+                break;
             }
         }
     }
-};
+}
+
 
 
 void Phonebook::REMOVE(){
@@ -90,7 +98,7 @@ void Phonebook::REMOVE(){
         std::string Index_or_phoneN;
 
          for (int i=0;i<contacts.size();i++){
-        std::cout << (i+1) << '\t'  << "Name : " << contacts[i].Name << "PhoneNumber : " << 
+        std::cout << (i+1) << '\t'  << "Name : " << contacts[i].Name << "  PhoneNumber : " << 
          contacts[i].PhoneNumber <<  '\n';
         }
 
@@ -124,17 +132,50 @@ void Phonebook::REMOVE(){
 }
 
 
-void Phonebook::BOOKMARK(){
+void Phonebook::BOOKMARK() {
+    std::vector<int> bookmarkedIndices;
 
-   std::cout << "Bookmarked Contacts:\n";
-    for (const auto& contact : contacts) {
-        if(contact.IsBookmarked()){
-        std::cout << "Name: " << contact.Name << "\n";
-        std::cout << "Phone Number: " << contact.PhoneNumber << "\n";
-        std::cout << "Nickname: " << contact.NickName << "\n\n";
+    std::cout << "Bookmarked Contacts:\n";
+    for (int i = 0; i < contacts.size(); i++) {
+        if (contacts[i].IsBookmarked()) {
+            bookmarkedIndices.push_back(i);
+            std::cout << "Index: " << (i + 1) << "\t";
+            std::cout << "Name: " << contacts[i].Name << "\t";
+            std::cout << "Phone Number: " << contacts[i].PhoneNumber << "\t";
+            std::cout << "Nickname: " << contacts[i].NickName << "\t\n";
         }
     }
+
+    if (bookmarkedIndices.empty()) {
+        std::cout << "No bookmarked contacts found.\n";
+        return;
+    }
+
+    std::cout << "Do you want to change the Bookmark setting? (Y/N): ";
+    std::string choice;
+    std::cin >> choice;
+
+    if (choice == "Y" || choice == "y") {
+        int index;
+        std::cout << "Enter the index number of the contact to remove the bookmark: ";
+        if (!(std::cin >> index)) {
+            std::cout << "Invalid input! Please enter a valid index number.\n";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return;
+        }
+
+        if (index <= 0 || index > bookmarkedIndices.size()) {
+            std::cout << "Invalid index number!\n";
+            return;
+        }
+
+        index = bookmarkedIndices[index - 1];
+        contacts[index].SetBookmarked(false);
+        std::cout << contacts[index].Name << "'s bookmark has been removed\n";
+    }
 }
+
 
  void Phonebook::EXIT(){
     std::cout << "Exiting the phonebook. Goodbye!\n";
